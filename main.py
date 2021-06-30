@@ -23,14 +23,14 @@ async def rocauc(files: List[UploadFile] = File(...), weights: List[str] = None)
     Args:
 
     `files List[UploadFile]`: Upload CSV files. Each CSV must contain columns named
-    `raw_stem`, `score` and `label`.
+    `stem`, `score` and `label`.
 
     `weights (List[str], optional)`: weights for each csv file. if weights are not provided,
     average value will be considered.
 
     """
 
-    stem_col = "raw_stem"
+    stem_col = "stem"
     pred_col = "score"
     gt_col = "label"
 
