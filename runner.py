@@ -1,8 +1,8 @@
 import datetime
+
 import click
-from app import download_files, set_output_path, upload_files
 
-
+from app import upload_dataset_helper, upload_roc_csv_helper
 
 
 @click.group()
@@ -10,49 +10,55 @@ def cli():
     pass
 
 
-@cli.command()
-def hello():
-    click.echo("Hello World")
+####### CHECK ENSEMBLE RESULT ########
 
 
 @cli.command()
 @click.option(
-    "-dsp",
-    "--datasetpath",
-    type=str,
-    help="Absolute path of Dataset [ZIP]",
+    "-cp", type=str, help="Absolute path of ROC CSVs", multiple=True, required=True
 )
+@click.option(
+    "-dn",
+    type=str,
+    help="Name of the dataset. New dataset can not be used without first uploading it.",
+    required=True,
+)
+@click.option(
+    "-mn",
+    type=str,
+    help="Model name which needs to be ensembled with current CSV",
+    multiple=True,
+)
+def make_ensemble(cp, dn, mn):
+    print(cp)
+    print(dn)
+    print(mn)
+
+
+######### UPLOAD DATASET #############
+
+
+@cli.command()
+@click.option("-dn", type=str, help="Unique name for this dataset", required=True)
 @click.option(
     "-cp",
-    "--configpath",
     type=str,
-    help="Absolute path of Config file [YAML]",
+    help="CSV Path for the dataset. Please ask the maintainer for proper format of the dataset",
+    required=True,
 )
-def upload_csv(model, csvpath):
+def upload_dataset(dn, cp):
+    upload_dataset_helper(dn, cp)
+
+
+########## UPLOAD ROC CSV ##############
 
 
 @cli.command()
-@click.option(
-    "-idx",
-    type=str,
-    help="Unique identifier of the previous experiment",
-)
-def get_weights(idx):
-    download_files(idx)
-
-
-@cli.command()
-@click.option(
-    "-op",
-    type=str,
-    help="Set the directory path where trained model weights will be saved.",
-)
-def set_output_dir(op):
-    set_output_path(op)
-    if op != "":
-        click.echo(f"Output directory set to {op}")
-    else:
-        pass
+@click.option("-dn", type=str, help="Enter dataset name.", required=True)
+@click.option("-mn", type=str, help="Enter model name", required=True)
+@click.option("-cp", type=str, help="Enter the CSV path", required=True)
+def upload_roc_csv(dn, mn, cp):
+    upload_roc_csv_helper(dn, mn, cp)
 
 
 if __name__ == "__main__":

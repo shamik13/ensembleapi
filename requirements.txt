@@ -1,6 +1,6 @@
 numpy
 pandas
 scikit-learn
-uvicorn
-fastapi
 python-multipart
+click>=7.1.2
+paramiko
