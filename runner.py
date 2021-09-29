@@ -2,7 +2,7 @@ import datetime
 
 import click
 
-from app import upload_dataset_helper, upload_roc_csv_helper
+from app import ensemble_helper, upload_dataset_helper, upload_roc_csv_helper
 
 
 @click.group()
@@ -15,7 +15,11 @@ def cli():
 
 @cli.command()
 @click.option(
-    "-cp", type=str, help="Absolute path of ROC CSVs", multiple=True, required=True
+    "-cp",
+    type=str,
+    help="Absolute path of ROC CSVs / model name separated by comma",
+    # multiple=True,
+    required=True,
 )
 @click.option(
     "-dn",
@@ -24,15 +28,10 @@ def cli():
     required=True,
 )
 @click.option(
-    "-mn",
-    type=str,
-    help="Model name which needs to be ensembled with current CSV",
-    multiple=True,
+    "-w", type=str, help="comma separated weights to be used for ensemble.", default=""
 )
-def make_ensemble(cp, dn, mn):
-    print(cp)
-    print(dn)
-    print(mn)
+def make_ensemble(cp, dn, w):
+    ensemble_helper(cp, dn, w)
 
 
 ######### UPLOAD DATASET #############
