@@ -4,3 +4,4 @@ scikit-learn
 python-multipart
 click>=7.1.2
 paramiko
+colorama

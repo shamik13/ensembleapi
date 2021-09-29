@@ -18,7 +18,6 @@ def cli():
     "-cp",
     type=str,
     help="Absolute path of ROC CSVs / model name separated by comma",
-    # multiple=True,
     required=True,
 )
 @click.option(
