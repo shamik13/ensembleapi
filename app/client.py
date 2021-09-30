@@ -26,6 +26,19 @@ TEMP_UPLOAD_DIR = "/home/shamik/github/ENSEMBLE_DIRS/TEMP"
 REMOTE_ROC_PATH = "/home/shamik/github/ENSEMBLE_DIRS/ROC_CSVS"
 
 
+def delete_file(filepath):
+    try:
+        if isinstance(filepath, list):
+            for path in filepath:
+                file_to_rem = Path(path)
+                file_to_rem.unlink()
+        else:
+            file_to_rem = Path(filepath)
+            file_to_rem.unlink()
+    except Exception as e:
+        click.echo(e)
+
+
 def print_text(string, color="red"):
     if color == "red":
         click.echo(Fore.RED + string + Style.RESET_ALL)
@@ -116,7 +129,7 @@ def checkformat(df, flag):
 
 
 def upload_roc_csv_helper(dataset_name, model_name, roc_csv_path):
-    LOCALSAVEDIR = os.path.expanduser(os.path.join("~", "ENSEMBLEAPI_TEMP"))
+    LOCALSAVEDIR = os.path.expanduser(os.path.join("~", ".ENSEMBLEAPI_TEMP"))
     os.makedirs(LOCALSAVEDIR, exist_ok=True)
     idx = str(uuid.uuid1())
     try:
@@ -151,6 +164,7 @@ def upload_roc_csv_helper(dataset_name, model_name, roc_csv_path):
         dataset_stem_list = data_df["stem"].tolist()
         compare = lambda x, y: collections.Counter(x) == collections.Counter(y)
         if compare(current_stem_list, dataset_stem_list) is False:
+            delete_file(localdatafilepath)
             return
     if status_2 == 0:
         data_df = pd.read_csv(localdatafilepath)
@@ -171,8 +185,7 @@ def upload_roc_csv_helper(dataset_name, model_name, roc_csv_path):
             click.echo(
                 Fore.RED + "Something went wrong! Please try again!" + Style.RESET_ALL
             )
-        file_to_rem = Path(localdatafilepath)
-        file_to_rem.unlink()
+        delete_file(localdatafilepath)
         return
     if status_2 == 1:
         # existing ROC
@@ -221,10 +234,7 @@ def upload_roc_csv_helper(dataset_name, model_name, roc_csv_path):
                     + "Something went wrong! Please try again!"
                     + Style.RESET_ALL
                 )
-        file_to_rem = Path(localdatafilepath)
-        file_to_rem.unlink()
-        file_to_rem = Path(localrocpath)
-        file_to_rem.unlink()
+        delete_file([localdatafilepath, localrocpath])
         return
 
 
@@ -266,7 +276,7 @@ def upload_dataset_helper(dataset_name, dataset_path):
 
 
 def ensemble_helper(cp, dn, w=""):
-    LOCALSAVEDIR = os.path.expanduser(os.path.join("~", "ENSEMBLEAPI_TEMP"))
+    LOCALSAVEDIR = os.path.expanduser(os.path.join("~", ".ENSEMBLEAPI_TEMP"))
     os.makedirs(LOCALSAVEDIR, exist_ok=True)
     idx = str(uuid.uuid1())
     remotedatafilepath = f"{REMOTE_DATASET_PATH}/{dn}.csv"
@@ -288,6 +298,7 @@ def ensemble_helper(cp, dn, w=""):
                 + "Each file/model should have its corresponding weights!"
                 + Style.RESET_ALL
             )
+            delete_file(localdatafilepath)
             return
     file_list, local_file_list, remote_file_list = [], [], []
     for item in roc_list:
@@ -296,6 +307,7 @@ def ensemble_helper(cp, dn, w=""):
             file_list.append(item)
         else:
             remote_file_list.append(item)
+    localrocpathlist = []
     for item in remote_file_list:
         remoterocpath = f"{REMOTE_ROC_PATH}/{dn}___{item}.csv"
         localrocpath = os.path.join(LOCALSAVEDIR, f"{dn}___{item}.csv")
@@ -306,8 +318,10 @@ def ensemble_helper(cp, dn, w=""):
                 + "Something went wrong in getting records from server. Please check if the requested CSV is present in server!"
                 + Style.RESET_ALL
             )
+            delete_file(localrocpathlist + [localdatafilepath])
             return
         elif status == 1:
+            localrocpathlist.append(localrocpath)
             file_list.append(localrocpath)
 
     if len(file_list) == 1:  # for a single file, calculate ROCAUC directly
@@ -320,6 +334,7 @@ def ensemble_helper(cp, dn, w=""):
                 f"Only one file detected! ROC-AUC: {Fore.GREEN}{roc_auc}{Style.RESET_ALL}"
             )
         except Exception as e:
+            delete_file(localrocpathlist + [localdatafilepath])
             click.echo(Fore.RED + str(e) + Style.RESET_ALL)
 
     else:  # for multiple files create a dataframe with columns [stem, score1, score2, ... , label]
@@ -342,8 +357,11 @@ def ensemble_helper(cp, dn, w=""):
                     + "stem column of each csv should have identical elements"
                     + Style.RESET_ALL
                 )
+                delete_file(localrocpathlist + [localdatafilepath])
+                return
         except Exception as e:
             click.echo(Fore.RED + str(e) + Style.RESET_ALL)
+            delete_file(localrocpathlist + [localdatafilepath])
             return
         y_true, y_preds = [], []
 
@@ -358,6 +376,7 @@ def ensemble_helper(cp, dn, w=""):
                     + "Please make sure provided weights are correct"
                     + Style.RESET_ALL
                 )
+                delete_file(localrocpathlist + [localdatafilepath])
                 return
         try:
             for k, v in d.items():
@@ -366,7 +385,9 @@ def ensemble_helper(cp, dn, w=""):
                 y_true.append(int(v[-1]))
         except Exception as e:
             click.echo(Fore.RED + str(e) + Style.RESET_ALL)
+            delete_file(localrocpathlist + [localdatafilepath])
             return
         click.echo(
             f"Ensembled ROC_AUC: {Fore.GREEN}{roc_auc_score(y_true, y_preds)}{Style.RESET_ALL}"
         )
+        delete_file(localrocpathlist + [localdatafilepath])
