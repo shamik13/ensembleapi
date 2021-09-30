@@ -38,3 +38,12 @@ For example,
 - Case 1: `ensembleapi make-ensemble -cp /home/shamik/work/a.csv -dn rav4dataset`
 - Case 2: `ensembleapi make-ensemble -cp /home/shamik/work/padim_roc.csv,patchcore -dn rav4dataset`
 - Case 3: `ensembleapi make-ensemble -cp /home/shamik/work/padim_roc.csv,patchcore,draem -dn rav4dataset -w 0.5,0.3,0.2`
+
+#### View available datasets/models:
+The purpose of this command is to see what models are available on server to be used directly in `make-ensemble` command.
+```
+>>> ensembleapi get-model-list -dn <optional/dataset-name>
+```
+For example,
+- `ensembleapi get-model-list`
+- `ensembleapi get-model-list -dn rav4dataset`
