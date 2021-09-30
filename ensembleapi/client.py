@@ -4,6 +4,7 @@ import shutil
 import uuid
 from collections import defaultdict
 from pathlib import Path
+from stat import S_ISDIR, S_ISREG
 from time import localtime, sleep
 from zipfile import ZipFile
 
@@ -391,3 +392,25 @@ def ensemble_helper(cp, dn, w=""):
             f"Ensembled ROC_AUC: {Fore.GREEN}{roc_auc_score(y_true, y_preds)}{Style.RESET_ALL}"
         )
         delete_file(localrocpathlist + [localdatafilepath])
+
+
+def get_model_list_helper(dn):
+    roc_list = []
+    roc_dict = defaultdict(list)
+    sftp, ssh = get_sftp_client()
+    for entry in sftp.listdir_attr(REMOTE_ROC_PATH):
+        mode = entry.st_mode
+        if S_ISREG(mode):
+            roc_list.append(entry.filename)
+    for item in roc_list:
+        dataset = item.split("___")[0]
+        model = item.split("___")[1][:-4]
+        roc_dict[dataset].append(model)
+
+    click.echo(f"\nAvailable models and datasets:")
+    for k, v in roc_dict.items():
+        if dn == "" or dn == k:
+            click.echo(f"\ndataset: {Fore.BLUE}{k}{Style.RESET_ALL}")
+            click.echo("Available models:")
+            for item in v:
+                click.echo(f"{Fore.CYAN}{item}{Style.RESET_ALL}")

@@ -2,7 +2,12 @@ import datetime
 
 import click
 
-from app import ensemble_helper, upload_dataset_helper, upload_roc_csv_helper
+from . import (
+    ensemble_helper,
+    get_model_list_helper,
+    upload_dataset_helper,
+    upload_roc_csv_helper,
+)
 
 
 @click.group()
@@ -57,6 +62,15 @@ def upload_dataset(dn, cp):
 @click.option("-cp", type=str, help="Enter the CSV path", required=True)
 def upload_roc_csv(dn, mn, cp):
     upload_roc_csv_helper(dn, mn, cp)
+
+
+######## CHECK UPLOADED ROC FILES #########
+
+
+@cli.command()
+@click.option("-dn", type=str, help="Enter dataset name.", default="")
+def get_model_list(dn):
+    get_model_list_helper(dn)
 
 
 if __name__ == "__main__":
