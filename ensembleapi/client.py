@@ -290,6 +290,7 @@ def ensemble_helper(cp, dn, w=""):
             + Style.RESET_ALL
         )
         return
+
     roc_list = cp.split(",")
     if w:
         w_list = w.split(",")
@@ -327,8 +328,9 @@ def ensemble_helper(cp, dn, w=""):
 
     if len(file_list) == 1:  # for a single file, calculate ROCAUC directly
         df = pd.read_csv(file_list[0])
-        y_true = df["label"].tolist()
-        y_preds = df["stem"].tolist()
+        df_data = pd.read_csv(localdatafilepath)
+        y_true = df_data["label"].tolist()
+        y_preds = df["score"].tolist()
         try:
             roc_auc = roc_auc_score(y_true, y_preds)
             click.echo(
